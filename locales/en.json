@@ -1,0 +1,17 @@
+{
+  "testing": "Testing...",
+  "notFound": "Book not found",
+  "deleted": "Book deleted successfully",
+  "updated": "Book updated successfully",
+  "titleRequired": "Title is required",
+  "titleLength": "Title must be between 5 and 100 characters",
+  "authorRequired": "Author is required",
+  "authorLength": "Author must be between 3 and 100 characters",
+  "priceRequired": "Price is required",
+  "priceMin": "Price must be at least 1 USD",
+  "priceMax": "Price must be at most 1000 USD",
+  "imageRequired": "Image is required",
+  "imageValid": "Image must be a valid URL",
+  "invalidBookId": "Invalid book ID",
+  "validationFailed": "Validation failed"
+}
