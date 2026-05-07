@@ -7,7 +7,7 @@ const i18next = require("i18next"); // Internationalization
 const middleware = require("i18next-http-middleware"); // Handle i18next
 
 const app = express(); // Create express app
-const port = 4000; // Port number
+const port = process.env.PORT || 4000; // Port number
 
 // Load translations directly
 const enTranslations = require("./locales/en.json");
@@ -49,6 +49,7 @@ i18next
 // Connect to MongoDB
 const connectionString = process.env.CONNECTION_STRING;
 
+console.log("CONNECTION_STRING =", process.env.CONNECTION_STRING);
 mongoose
   .connect(connectionString)
   .then(() => {
