@@ -1,60 +1,73 @@
 const express = require("express");
 const mongoose = require("mongoose");
-require("dotenv").config();
+require("dotenv").config(); // Load environment variables from .env file
+const booksRouter = require("./routes/books.routes"); // Import books router
+//locales
+const i18next = require("i18next"); // Internationalization
+const middleware = require("i18next-http-middleware"); // Handle i18next
 
-const booksRouter = require("./routes/books.routes");
-const i18next = require("i18next");
-const middleware = require("i18next-http-middleware");
+const app = express(); // Create express app
+const port = process.env.PORT; // Port number
 
-const app = express();
-const port = process.env.PORT || 4000;
-console.log("PORT=", port);
+// Load translations directly
+const enTranslations = require("./locales/en.json");
+const arTranslations = require("./locales/ar.json");
 
-app.use(express.json());
-
-// 🚨 HEALTH CHECK MUST BE FIRST
-app.get("/", (req, res) => res.status(200).send("OK"));
-app.get("/health", (req, res) => res.status(200).send("OK"));
-app.get("/ping", (req, res) => res.status(200).send("pong"));
-
-// attach routes early
-app.use("/books", booksRouter);
-
-async function start() {
-  try {
-    // 1. DB FIRST (critical)
-    await mongoose.connect(process.env.CONNECTION_STRING);
-    console.log("MongoDB connected");
-
-    // 2. i18n init (non-blocking)
-    const en = require("./locales/en.json");
-    const ar = require("./locales/ar.json");
-
-    await i18next.init({
-      fallbackLng: "en",
-      resources: {
-        en: { translation: en },
-        ar: { translation: ar },
+// Initialize i18next
+i18next
+  .use(middleware.LanguageDetector)
+  .init({
+    fallbackLng: "en", // Default language
+    resources: {
+      en: {
+        translation: enTranslations,
       },
-      detection: {
-        order: ["querystring", "header", "cookie"],
-        lookupQuerystring: "lang",
-        lookupHeader: "accept-language",
-        caches: false,
+      ar: {
+        translation: arTranslations,
       },
-      debug: false,
+    },
+    detection: {
+      order: ["querystring", "header", "cookie"],
+      lookupQuerystring: "lang",
+      lookupHeader: "accept-language",
+      caches: false,
+    },
+    debug: true, // Enable debug mode
+  })
+  .then(() => {
+    app.use(middleware.handle(i18next)); // Handle i18next
+    app.use(express.json()); // Parse JSON bodies
+
+    // Health check routes
+    app.get("/", (_req, res) => res.status(200).send("OK"));
+    app.get("/health", (_req, res) => res.status(200).send("OK"));
+    app.get("/ping", (_req, res) => res.status(200).send("pong"));
+
+    app.use("/books", booksRouter); // Use books router for /books routes (middleware)
+
+    // Start server
+    app.listen(port, () => {
+      console.log(`App listening on port ${port}`);
     });
+  });
 
-    app.use(middleware.handle(i18next));
+// Connect to MongoDB
+const connectionString = process.env.CONNECTION_STRING;
 
-    // 3. START SERVER LAST
-    app.listen(port, "0.0.0.0", () => {
-      console.log(`Server running on port ${port}`);
-    });
-  } catch (err) {
-    console.error("Startup error:", err);
-    process.exit(1);
-  }
-}
+mongoose
+  .connect(connectionString)
+  .then(() => {
+    console.log("Connected to MongoDB ^_^"); // Success message
+  })
+  .catch((err) => {
+    console.error("Error connecting to MongoDB:", err); // Error message
+  });
 
-start();
+const db = mongoose.connection;
+// Handle connection errors
+db.on("error", console.error.bind(console, "connection error:"));
+
+// Handle successful connection
+db.once("open", function () {
+  console.log("Connected to MongoDB");
+});
