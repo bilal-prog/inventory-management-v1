@@ -9,47 +9,51 @@ const middleware = require("i18next-http-middleware");
 const app = express();
 const port = process.env.PORT || 4000;
 
-// middleware that does NOT depend on async init
 app.use(express.json());
 
-// health checks FIRST (important for Railway)
+// 🚨 HEALTH CHECK MUST BE FIRST
 app.get("/", (req, res) => res.status(200).send("OK"));
 app.get("/health", (req, res) => res.status(200).send("OK"));
 app.get("/ping", (req, res) => res.status(200).send("pong"));
 
+// attach routes early
 app.use("/books", booksRouter);
 
-// init i18next separately
-const en = require("./locales/en.json");
-const ar = require("./locales/ar.json");
+async function start() {
+  try {
+    // 1. DB FIRST (critical)
+    await mongoose.connect(process.env.CONNECTION_STRING);
+    console.log("MongoDB connected");
 
-i18next
-  .use(middleware.LanguageDetector)
-  .init({
-    fallbackLng: "en",
-    resources: {
-      en: { translation: en },
-      ar: { translation: ar },
-    },
-    detection: {
-      order: ["querystring", "header", "cookie"],
-      lookupQuerystring: "lang",
-      lookupHeader: "accept-language",
-      caches: false,
-    },
-    debug: false,
-  })
-  .then(() => {
+    // 2. i18n init (non-blocking)
+    const en = require("./locales/en.json");
+    const ar = require("./locales/ar.json");
+
+    await i18next.init({
+      fallbackLng: "en",
+      resources: {
+        en: { translation: en },
+        ar: { translation: ar },
+      },
+      detection: {
+        order: ["querystring", "header", "cookie"],
+        lookupQuerystring: "lang",
+        lookupHeader: "accept-language",
+        caches: false,
+      },
+      debug: false,
+    });
+
     app.use(middleware.handle(i18next));
 
-    app.listen(port, "0.0.0.0", async () => {
+    // 3. START SERVER LAST
+    app.listen(port, "0.0.0.0", () => {
       console.log(`Server running on port ${port}`);
-
-      try {
-        await mongoose.connect(process.env.CONNECTION_STRING);
-        console.log("MongoDB connected");
-      } catch (err) {
-        console.error("MongoDB connection failed:", err);
-      }
     });
-  });
+  } catch (err) {
+    console.error("Startup error:", err);
+    process.exit(1);
+  }
+}
+
+start();
