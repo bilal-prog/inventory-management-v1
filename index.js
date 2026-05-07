@@ -8,6 +8,7 @@ const middleware = require("i18next-http-middleware"); // Handle i18next
 
 const app = express(); // Create express app
 const port = process.env.PORT || 4000; // Port number
+console.log("PORT =", process.env.PORT);
 
 // Load translations directly
 const enTranslations = require("./locales/en.json");
