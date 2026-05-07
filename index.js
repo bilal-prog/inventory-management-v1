@@ -8,6 +8,7 @@ const middleware = require("i18next-http-middleware");
 
 const app = express();
 const port = process.env.PORT || 4000;
+console.log("PORT=", port);
 
 app.use(express.json());
 
@@ -47,8 +48,8 @@ async function start() {
     app.use(middleware.handle(i18next));
 
     // 3. START SERVER LAST
-    app.listen(process.env.PORT, "0.0.0.0", () => {
-      console.log("Server running on port", process.env.PORT);
+    app.listen(port, "0.0.0.0", () => {
+      console.log(`Server running on port ${port}`);
     });
   } catch (err) {
     console.error("Startup error:", err);
