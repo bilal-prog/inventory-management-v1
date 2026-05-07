@@ -39,6 +39,15 @@ i18next
     app.use(middleware.handle(i18next)); // Handle i18next
     app.use(express.json()); // Parse JSON bodies
 
+    // Health check endpoint for Railway
+    app.get("/", (req, res) => {
+      res.status(200).json({
+        status: "ok",
+        message: "Inventory Management API is running",
+        timestamp: new Date().toISOString(),
+      });
+    });
+
     app.use("/books", booksRouter); // Use books router for /books routes (middleware)
 
     // Start server
