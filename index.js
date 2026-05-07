@@ -39,13 +39,34 @@ i18next
     app.use(middleware.handle(i18next)); // Handle i18next
     app.use(express.json()); // Parse JSON bodies
 
-    // Health check endpoint for Railway
+    // Health check endpoints for Railway
     app.get("/", (req, res) => {
       res.status(200).json({
         status: "ok",
         message: "Inventory Management API is running",
         timestamp: new Date().toISOString(),
       });
+    });
+
+    // Additional health check endpoints
+    app.get("/health", (req, res) => {
+      res.status(200).json({
+        status: "ok",
+        message: "Health check passed",
+        timestamp: new Date().toISOString(),
+      });
+    });
+
+    app.get("/healthz", (req, res) => {
+      res.status(200).json({
+        status: "ok",
+        message: "Health check passed",
+        timestamp: new Date().toISOString(),
+      });
+    });
+
+    app.get("/ping", (req, res) => {
+      res.status(200).send("pong");
     });
 
     app.use("/books", booksRouter); // Use books router for /books routes (middleware)
