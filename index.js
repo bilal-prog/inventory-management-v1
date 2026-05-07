@@ -47,8 +47,8 @@ async function start() {
     app.use(middleware.handle(i18next));
 
     // 3. START SERVER LAST
-    app.listen(port, "0.0.0.0", () => {
-      console.log(`Server running on port ${port}`);
+    app.listen(process.env.PORT, "0.0.0.0", () => {
+      console.log("Server running on port", process.env.PORT);
     });
   } catch (err) {
     console.error("Startup error:", err);
